@@ -1,0 +1,768 @@
+/* Reff · owner redesign 2026-11-20: ticket + setlist object language (replaces Spore in full)
+ * structure: compact head, pack = ticket stub, program = printed setlist sheet, flat footer nav
+ * signature: the perforation rule between ticket halves, and the cue rule on the lyric line
+ * states: loading, empty (online and offline), full, downloading, failed
+ * axes: dark/neutral-ink/serif-heads · dials: ENERGY 2 / RHYTHM 2 / MOTION 1 · contrast: pass · v3.0.0 */
+@import url("./tokens.css");
+@import url("./base.css");
+
+/* F7 assumes its .view/.page shell with internal scrollers: it locks
+   html{height:100%} and body{overflow:hidden;overflow-y:scroll}. Reff
+   scrolls the document itself, so the kit's shell locks are undone here
+   (base.css keeps overflow-x: clip on the root). */
+html { height: auto; }
+body { height: auto; overflow: visible; }
+
+/* Root stays at the browser's size: browser zoom and system text scaling are
+   the user's, and A+/A− is scoped to the lyrics alone (it multiplies
+   --lyrics-size on .lyric-line, never the root). */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: var(--space-md);
+  scroll-padding-bottom: var(--space-3xl);
+}
+
+/* R-39 affordances, set once here rather than per component */
+a[href],
+button,
+summary,
+select,
+label[for],
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'] {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+/* --- Screen --- */
+
+main {
+  width: 100%;
+  max-width: 44rem;
+  margin-inline: auto;
+  padding: var(--space-md) var(--space-md) calc(6.5rem + env(safe-area-inset-bottom));
+  outline: none;
+}
+
+/* Compact head: the brand is a line, not a hero (owner: no big wordmark) */
+.masthead {
+  padding-top: calc(var(--space-sm) + env(safe-area-inset-top));
+  margin-bottom: var(--space-xl);
+}
+
+.wordmark {
+  font-size: var(--text-xl);
+  line-height: 1.1;
+}
+
+.lede {
+  margin-top: var(--space-xs);
+  max-width: 46ch;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.muted {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+/* Off-screen at rest without pushing the page sideways (Floor 34): clipped to
+   a point, restored on focus, still reachable by keyboard. */
+.skip-link {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: var(--z-tooltip);
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  border-radius: 0 0 var(--radius-card) 0;
+  font-weight: 500;
+  text-decoration: none;
+}
+.skip-link:focus {
+  width: auto;
+  height: auto;
+  padding: var(--space-sm) var(--space-md);
+  overflow: visible;
+  clip-path: none;
+}
+
+.banner {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-paper-3);
+  color: var(--color-ink);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-align: center;
+}
+
+/* --- Nav: Framework7's iOS tab bar, pinned to the viewport --- */
+
+/* The kit owns the bar: height (80px icons+labels via .tabbar-icons), icon
+   and label type, active colour, pressed states. F7 assumes its own page
+   shell for positioning, so the only thing added here is the pin, the
+   hairline, and the z-index. Safe area is inside F7's height calc. */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-sticky-nav);
+  background-color: var(--color-paper-2);
+  border-top: var(--rule-hair) solid var(--color-rule);
+}
+/* The .tab class on each link is a hook for the app (aria-current logic and
+   the click-through); F7's .tab-link rules do the styling. */
+
+/* --- Controls: Framework7's .button system --- */
+
+/* The kit owns every button's size, shape, type and states (height comes
+   from --f7-button-height in tokens.css). .btn stays as the app's
+   behavioral hook: danger semantics, the back-link ellipsis, focus. */
+.btn {
+  gap: var(--space-xs);
+}
+.btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+/* Disabled carries four channels, not a fade: opacity, cursor, fill and ink,
+   on top of the native attribute (39a, R-39). */
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--color-paper-2);
+  color: var(--color-muted);
+  transform: none;
+}
+
+/* .btn-primary is only the fill hook now: F7 .button-fill paints it. */
+
+/* Delete is the quietest control on the pack until it is confirmed, then it
+   lifts a surface rather than reaching for a second hue. */
+.btn-danger {
+  color: var(--color-muted);
+}
+@media (hover: hover) {
+  .btn-danger:hover {
+    background: transparent;
+    color: var(--color-ink);
+  }
+}
+.btn-danger[data-confirm='1'] {
+  background: var(--color-paper-3);
+  color: var(--color-ink);
+}
+
+.btn-back {
+  min-width: 0;
+  max-width: 100%;
+  justify-content: flex-start;
+}
+.btn-back > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* --- Status --- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 28px;
+  padding: var(--space-2xs) var(--space-sm);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-btn);
+  background: var(--color-paper-3);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+/* Four states, four treatments, no second hue: pink stays on the one action
+   so a chip can never be mistaken for a button. */
+.badge-ready {
+  background: var(--color-paper);
+  border-color: var(--color-ink-2);
+  color: var(--color-ink);
+}
+.badge-downloading {
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+}
+.badge-failed {
+  background: transparent;
+  border-color: var(--color-ink-2);
+  border-style: dashed;
+  color: var(--color-ink);
+}
+
+.progress {
+  height: var(--space-xs);
+  margin-top: var(--space-md);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-3);
+  overflow: hidden;
+}
+.progress > div {
+  height: 100%;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-short) linear;
+}
+
+/* --- Loading: the shape of the list that is coming --- */
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.skeleton li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+/* Loop dose: the pulse is the loading affordance for the two lists, it stops
+   the moment the data lands, and base.css collapses it under reduced motion
+   (R-19: one loop, short, purpose-written). */
+.skeleton li::before,
+.skeleton li::after {
+  content: '';
+  display: block;
+  border-radius: var(--space-2xs);
+  background: var(--color-paper-2);
+  animation: skeleton-pulse 1.2s var(--ease-in-out) infinite alternate;
+}
+.skeleton li::before {
+  width: 62%;
+  height: var(--space-xl);
+}
+.skeleton li::after {
+  width: 38%;
+  height: var(--space-lg);
+}
+@keyframes skeleton-pulse {
+  from { opacity: 1; }
+  to { opacity: 0.55; }
+}
+
+/* --- The pack: a ticket, stub and all --- */
+
+#pack-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* The perforation is the identity motif (R-31): every pack reads as one
+   ticket torn along a dashed rule, main half beside the stub. */
+.pack {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-paper-2);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.ticket-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--space-lg);
+}
+
+.ticket-stub {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  border-top: 2px dashed var(--color-rule);
+}
+
+/* Ticket-voice label: uppercase, tracked, mono. The metaphor earns it (R-06,
+   R-31); it is the one shouted label in the product. */
+.stub-label {
+  margin: 0;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pack-artist {
+  font-size: var(--text-display);
+  line-height: 1.06;
+}
+
+.pack-name {
+  margin-top: var(--space-xs);
+  color: var(--color-ink-2);
+  font-size: var(--text-md);
+}
+
+.pack-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md) var(--space-xl);
+  margin: 0;
+}
+.pack-facts .fact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+.pack-facts dt {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+.pack-facts dd {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.pack-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+/* The ticket turns side-by-side only when the main half still has room to
+   breathe: below 36rem the stub tears off underneath instead (R-35). */
+@media (min-width: 36rem) {
+  .pack {
+    flex-direction: row;
+  }
+  .ticket-stub {
+    width: 13rem;
+    padding: var(--space-lg);
+    border-top: 0;
+    border-left: 2px dashed var(--color-rule);
+    justify-content: space-between;
+  }
+}
+
+/* --- The program: a printed setlist sheet --- */
+
+.program-head {
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.song-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The sheet: the setlist sits on its own piece of stock, rules edge to edge
+   inside it (R-31: object metaphor, the list is a printed page). */
+.song-list.sheet {
+  padding: var(--space-xs) 0;
+  background: var(--color-paper-2);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.song-list li { position: relative; }
+.song-list li::after {
+  content: '';
+  position: absolute;
+  left: var(--space-lg);
+  right: 0;
+  bottom: 0;
+  height: var(--rule-hair);
+  background: var(--color-rule);
+}
+.song-list li:last-child::after { display: none; }
+
+.song-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+  width: 100%;
+  min-height: 60px;
+  padding: var(--space-md) var(--space-xs);
+  background: none;
+  border: 0;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  text-align: left;
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+@media (hover: hover) {
+  .song-row:hover { background: var(--color-paper-2); }
+}
+.song-row:active { background: var(--color-paper-3); }
+.song-row:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+
+.song-order {
+  flex: none;
+  width: 2.5ch;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Lists scan in the body face; the display serif is for headings, where a
+   title is read as a title rather than searched past (owner's call, R-06). */
+.song-title {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+/* --- Viewer: chrome-free, transport in the thumb zone --- */
+
+/* Full-bleed column: the header and transport own their own gutters, so the
+   bar runs edge to edge and the control row gets the whole width. */
+main:has(.viewer-header) {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: 0;
+  padding-bottom: calc(var(--space-sm) + env(safe-area-inset-bottom));
+  padding-left: 0;
+}
+
+body:has(.transport) .tabbar { display: none; }
+
+.viewer-header {
+  flex: none;
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+  background: var(--color-paper);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+
+.viewer-title {
+  margin-top: var(--space-md);
+  font-size: var(--text-xl);
+  line-height: 1.15;
+}
+
+.viewer-artist {
+  margin-top: var(--space-2xs);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.lyrics {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 36rem;
+  margin-inline: auto;
+  padding-left: var(--space-md);
+  padding-right: 8%;
+  overflow-y: auto;
+  overflow-x: clip;
+  overscroll-behavior: contain;
+}
+
+/* Headroom so the focused line can sit at the anchor without a dead spacer */
+.lyric-headroom { height: 30vh; }
+.lyric-headroom-end { height: 45vh; }
+
+.lyric-line {
+  position: relative;
+  margin: 0;
+  padding: 0.3em 0;
+  /* A+/A− multiplies this and nothing else: the rest of the UI keeps the
+     browser's root size (viewer.js writes --font-scale onto <html>). */
+  font-size: calc(var(--lyrics-size) * var(--font-scale));
+  line-height: var(--lyrics-leading);
+  font-weight: var(--lyrics-weight);
+  color: var(--color-ink);
+  opacity: var(--lyrics-rest-opacity);
+  transform-origin: left center;
+  transition:
+    opacity var(--dur-short) var(--ease-out),
+    transform var(--dur-short) var(--ease-out);
+  text-wrap: pretty;
+}
+
+.lyric-line.lyric-cont { margin-top: 0.1em; }
+
+.lyric-line.is-focus {
+  opacity: var(--lyrics-focus-opacity);
+  transform: scale(var(--lyrics-focus-scale));
+}
+
+/* The cue rule: the motif, one place, on the line the room is at */
+.lyric-line.is-focus::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.16em;
+  bottom: 0.16em;
+  width: var(--rule-cue);
+  border-radius: 2px;
+  background: var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lyric-line.is-focus {
+    transform: none;
+    font-weight: 700;
+  }
+}
+
+/* Structural verse tags from the lyric format, set as a label not a shout */
+.lyric-section {
+  margin: var(--space-lg) 0 var(--space-xs);
+  color: var(--color-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.lyric-empty {
+  color: var(--color-muted);
+  font-size: var(--text-md);
+  max-width: 40ch;
+}
+
+#now-playing {
+  flex: none;
+  padding: var(--space-xs) var(--space-md) 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.transport {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  padding: var(--space-sm) var(--space-md) var(--space-xs);
+  background: var(--color-paper-2);
+  border-top: var(--rule-hair) solid var(--color-rule);
+}
+
+.transport-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.transport-row .btn { flex: 0 1 auto; }
+/* Two groups on one row: type size, then scroll speed */
+.transport-adjust .speed { margin-left: var(--space-sm); }
+
+#scroll-toggle { flex: 1 1 auto; }
+
+/* F7's global button{width:100%} is right for cards and empty states, but
+   three rows need kit buttons sized to their content: the transport row,
+   the chip row, and the search bar (R-31: adapting the kit's assumption,
+   not restyling the kit). */
+.transport .btn,
+.chip,
+.btn-back,
+.search-box .btn {
+  width: auto;
+}
+
+.speed {
+  display: flex;
+  /* basis 0: the group never sizes the row, so it cannot force a wrap on a
+     narrow phone; it takes whatever the steppers leave */
+  flex: 1 1 0;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.speed input[type='range'] {
+  flex: 1 1 auto;
+  min-width: 4rem;
+  min-height: var(--tap-sm);
+  accent-color: var(--color-accent);
+}
+
+/* --- Search --- */
+
+/* The field itself is F7's searchbar (pill, 44px, kit type; palette bridged
+   in tokens.css). These lines only seat it beside the button. */
+.search-box .searchbar-inner {
+  display: flex;
+  width: 100%;
+  gap: var(--space-xs);
+}
+.search-box .searchbar-input-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.search-box .btn {
+  flex: none;
+}
+
+.recents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+}
+/* .chip is a hook for recent queries; F7's .button class does the styling
+   (recent chips are buttons like every other control). */
+.chip:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+.result-list {
+  margin: var(--space-lg) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: var(--rule-hair) solid var(--color-rule);
+}
+.result-list li { border-bottom: var(--rule-hair) solid var(--color-rule); }
+
+.result-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--space-md) var(--space-xs);
+  background: none;
+  border: 0;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  text-align: left;
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+@media (hover: hover) {
+  .result-row:hover { background: var(--color-paper-2); }
+}
+.result-row:active { background: var(--color-paper-3); }
+.result-row:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+
+.result-title {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+.result-meta {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.result-line {
+  margin-top: var(--space-2xs);
+  color: var(--color-ink-2);
+  font-size: var(--text-md);
+  line-height: 1.45;
+}
+
+/* --- Feedback and empty states --- */
+
+/* Elevation dose: this and the tab pill are the only two surfaces that lift
+   off the page (R-12); nothing else carries a shadow. */
+.snackbar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(6.5rem + env(safe-area-inset-bottom));
+  z-index: var(--z-toast);
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(90vw, 28rem);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--color-paper-3);
+  color: var(--color-ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-float);
+  font-size: var(--text-md);
+  font-weight: 500;
+  text-align: center;
+}
+body:has(.transport) .snackbar {
+  bottom: calc(9rem + env(safe-area-inset-bottom));
+}
+
+.empty-state {
+  padding: var(--space-2xl) 0;
+  color: var(--color-muted);
+}
+.empty-state p {
+  max-width: 52ch;
+  margin-bottom: var(--space-lg);
+  color: var(--color-ink-2);
+  font-size: var(--text-md);
+}
+
+/* --- Phone first, then the wider canvas --- */
+
+@media (max-width: 480px) {
+  .speed > span { display: none; }
+}
+/* At the narrowest phone the slider gives up 16px so the + stepper stays
+   inside the viewport with Stop visible on the row above (R-03). */
+@media (max-width: 360px) {
+  .speed input[type='range'] { min-width: 3rem; }
+}
+
+@media (min-width: 768px) {
+  main {
+    max-width: 48rem;
+    padding-inline: var(--space-xl);
+  }
+
+  :root { --lyrics-size: 1.75rem; }
+
+  .viewer-header,
+  .transport {
+    padding-inline: var(--space-xl);
+  }
+
+  .transport {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md);
+  }
+  .transport-row:first-child { flex: 1 1 auto; }
+  .transport-adjust { margin-left: auto; }
+}

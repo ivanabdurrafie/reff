@@ -1,0 +1,15 @@
+{
+  "packId": "demo.mcr.black-parade-2026",
+  "version": "1.0.0",
+  "name": "MCR: The Black Parade 2026 (Demo)",
+  "artist": "My Chemical Romance",
+  "language": "en",
+  "license": "SETLIST-ONLY: no lyrics included",
+  "rightsHolder": "Setlist facts: fan community / setlist.fm contributors; lyrics: not included",
+  "source": "https://www.setlist.fm/setlists/my-chemical-romance-3bd6bcd4.html",
+  "takedownContact": "REPLACE_WITH_PROJECT_EMAIL",
+  "containsLyrics": false,
+  "notes": "Song titles and setlist order only. Lyric files are empty placeholders for personal import (user-added text, stored on device only). Do not add copyrighted lyric text without rights.",
+  "createdAt": "2026-11-03",
+  "songCount": 34
+}

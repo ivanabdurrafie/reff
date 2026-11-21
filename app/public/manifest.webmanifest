@@ -1,0 +1,20 @@
+{
+  "name": "Reff: offline lyrics for concerts",
+  "short_name": "Reff",
+  "description": "Sing along at live concerts with lyrics that work fully offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06070a",
+  "theme_color": "#06070a",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

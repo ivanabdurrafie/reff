@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Reff — offline lyrics for concerts. Download a pack before the show, sing along with no signal.">
+  <meta name="theme-color" content="#101014">
+  <title>Reff — sing along offline</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon.svg">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div id="offline-banner" class="banner" role="status" hidden>
+    Offline — downloaded packs still work.
+  </div>
+
+  <header class="app-header">
+    <a class="brand" href="#/" aria-label="Reff home">Reff</a>
+  </header>
+
+  <main id="main" tabindex="-1"></main>
+
+  <nav class="tabbar" aria-label="Primary">
+    <a href="#/" id="tab-packs" class="tab" aria-current="page">Packs</a>
+    <a href="#/search" id="tab-search" class="tab">Search</a>
+  </nav>
+
+  <div id="snackbar" class="snackbar" role="status" aria-live="polite" hidden></div>
+
+  <script type="module" src="./app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+  </script>
+</body>
+</html>
