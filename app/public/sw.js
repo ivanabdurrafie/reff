@@ -1,6 +1,6 @@
 // Reff service worker: precached shell; pack JSON cached per version by the app
 // (Cache API). Navigations fall back to the shell so hash routes never 404.
-const CACHE = 'reff-shell-v1';
+const CACHE = 'reff-shell-v2';
 const SHELL = [
   './',
   './index.html',
@@ -49,7 +49,23 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
 
-  // Pack JSON: app-managed cache (reff-packs-v1) wins; else network.
+  // Catalog: network-first so pack version bumps reach the client; cache offline.
+  if (url.pathname.endsWith('/packs/index.json')) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // Versioned pack JSON: immutable URL — cache-first (app-managed reff-packs-v1).
   if (url.pathname.includes('/packs/') && url.pathname.endsWith('.json')) {
     e.respondWith(
       caches.match(e.request).then(
