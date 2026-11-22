@@ -40,7 +40,3 @@ Typography and focus hierarchy follow the [Mochy Music](https://github.com/reali
 **In this scaffold (PRD Phase 1):** pack registry/download/delete with status badges, song list, lyrics viewer with auto-scroll (visible Pause/Stop, manual-scroll suspend, speed control, A−/A+ font scale), offline fuzzy search with relaxed fallback, service-worker shell precache, offline banner, recent queries.
 
 **Not yet (PRD Phase 2+):** setlist mode, Concert Mode + wake lock, install prompt, delta pack updates, line sync, translation/romanization, i18n (EN/ID), personal .txt/.lrc import, white-label.
-
-## Licensing
-
-Demo pack ships with placeholder lyric files only — no copyrighted lyrics in the repo (PRD §16). Packs must state their own license and rights holder before appearing in any public registry.

@@ -1,0 +1,51 @@
+/* Reff design tokens — colours and type only from docs/design-tokens.css.
+   Fonts self-hosted woff2, font-display: swap (CLAUDE.md). */
+
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/bodoni-moda-700-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/inter-latin.woff2') format('woff2');
+}
+
+:root {
+  --ink: #0d0d0e;
+  --surface: #1a1a1c;
+  --soot: #2e2e31;
+  --ash: #9a9aa0;
+  --bone: #f2efea;
+  --red: #c8102e;
+  --red-text: #e5384f;
+  --amber: #d9a441;
+  --serif: 'Bodoni Moda', 'Didot', Georgia, serif;
+  --sans: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --r-card: 18px;
+  --r-btn: 16px;
+  --r-ctl: 12px;
+  --r-pill: 999px;
+  --lyric-size: 30px;
+  --gutter: 20px;
+  /* Ball column: fixed offset from the gutter to lyric text */
+  --ball-col: 28px;
+  /* Lyrics header: gap between song title and N / M counter */
+  --title-gap: 4px;
+  /* Jump sheet grab handle */
+  --grab-w: 36px;
+  --grab-h: 4px;
+}
+
+.light {
+  --ink: #f2efea;
+  --surface: #e4e0d8;
+  --soot: #cfcac0;
+  --bone: #111;
+  --ash: #5d5d62;
+}
