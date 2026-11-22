@@ -9,31 +9,180 @@
     "note": "Rescheduled from April 30th, 2026. setlist.fm section headers (The Black Parade, My Chemical Romance) are segment markers, not songs. The End. played twice (reprise at position 15); the pack builder lists it once. Tape/interlude segments omitted."
   },
   "songs": [
-    { "order": 1, "title": "Over Fields (The National Anthem of Draag)", "file": "songs/over-fields.txt" },
-    { "order": 2, "title": "The End.", "file": "songs/the end.txt" },
-    { "order": 3, "title": "Dead!", "file": "songs/dead.txt" },
-    { "order": 4, "title": "This Is How I Disappear", "file": "songs/this-is-how-i-disappear.txt" },
-    { "order": 5, "title": "The Sharpest Lives", "file": "songs/the-sharpest-lives.txt" },
-    { "order": 6, "title": "Welcome to the Black Parade", "file": "songs/welcome-to-the-black-parade.txt" },
-    { "order": 7, "title": "I Don't Love You", "file": "songs/i-dont-love-you.txt" },
-    { "order": 8, "title": "House of Wolves", "file": "songs/house-of-wolves.txt" },
-    { "order": 9, "title": "Cancer", "file": "songs/cancer.txt" },
-    { "order": 10, "title": "Mama", "file": "songs/mama.txt" },
-    { "order": 11, "title": "Sleep", "file": "songs/sleep.txt" },
-    { "order": 12, "title": "Teenagers", "file": "songs/teenagers.txt" },
-    { "order": 13, "title": "Disenchanted", "file": "songs/disenchanted.txt" },
-    { "order": 14, "title": "Famous Last Words", "file": "songs/famous-last-words.txt" },
-    { "order": 15, "title": "The End. (2026 piano reprise)", "file": "songs/the end.txt" },
-    { "order": 16, "title": "Blood", "file": "songs/blood.txt" },
-    { "order": 17, "title": "Give 'Em Hell, Kid", "file": "songs/give-em-hell-kid.txt" },
-    { "order": 18, "title": "Na Na Na (Na Na Na Na Na Na Na Na Na)", "file": "songs/na-na-na.txt" },
-    { "order": 19, "title": "Our Lady of Sorrows", "file": "songs/our-lady-of-sorrow.txt" },
-    { "order": 20, "title": "SING", "file": "songs/sing.txt" },
-    { "order": 21, "title": "Bury Me in Black", "file": "songs/bury-me-i-black.txt" },
-    { "order": 22, "title": "AMBULANCE", "file": "songs/ambulance.txt" },
-    { "order": 23, "title": "Cemetery Drive", "file": "songs/cemetery-drive.txt" },
-    { "order": 24, "title": "Helena", "file": "songs/helena.txt" },
-    { "order": 25, "title": "I'm Not Okay (I Promise)", "file": "songs/im-not-okay.txt" },
-    { "order": 26, "title": "Demolition Lovers", "file": "songs/demolition-lovers.txt" }
+    {
+      "order": 1,
+      "title": "Over Fields (The National Anthem of Draag)",
+      "file": "songs/over-fields.txt"
+    },
+    {
+      "order": 2,
+      "title": "The End.",
+      "file": "songs/the end.txt"
+    },
+    {
+      "order": 3,
+      "title": "Dead!",
+      "file": "songs/dead.txt"
+    },
+    {
+      "order": 4,
+      "title": "This Is How I Disappear",
+      "file": "songs/this-is-how-i-disappear.txt"
+    },
+    {
+      "order": 5,
+      "title": "The Sharpest Lives",
+      "file": "songs/the-sharpest-lives.txt"
+    },
+    {
+      "order": 6,
+      "title": "Welcome to the Black Parade",
+      "file": "songs/welcome-to-the-black-parade.txt"
+    },
+    {
+      "order": 7,
+      "title": "I Don't Love You",
+      "file": "songs/i-dont-love-you.txt"
+    },
+    {
+      "order": 8,
+      "title": "House of Wolves",
+      "file": "songs/house-of-wolves.txt"
+    },
+    {
+      "order": 9,
+      "title": "Cancer",
+      "file": "songs/cancer.txt"
+    },
+    {
+      "order": 10,
+      "title": "Mama",
+      "file": "songs/mama.txt"
+    },
+    {
+      "order": 11,
+      "title": "Sleep",
+      "file": "songs/sleep.txt"
+    },
+    {
+      "order": 12,
+      "title": "Teenagers",
+      "file": "songs/teenagers.txt"
+    },
+    {
+      "order": 13,
+      "title": "Disenchanted",
+      "file": "songs/disenchanted.txt"
+    },
+    {
+      "order": 14,
+      "title": "Famous Last Words",
+      "file": "songs/famous-last-words.txt"
+    },
+    {
+      "order": 15,
+      "title": "The End. (2026 piano reprise)",
+      "file": "songs/the end.txt"
+    },
+    {
+      "order": 16,
+      "title": "Blood",
+      "file": "songs/blood.txt"
+    },
+    {
+      "order": 17,
+      "title": "Give 'Em Hell, Kid",
+      "file": "songs/give-em-hell-kid.txt"
+    },
+    {
+      "order": 18,
+      "title": "Na Na Na (Na Na Na Na Na Na Na Na Na)",
+      "file": "songs/na-na-na.txt"
+    },
+    {
+      "order": 19,
+      "title": "Our Lady of Sorrows",
+      "file": "songs/our-lady-of-sorrow.txt"
+    },
+    {
+      "order": 20,
+      "title": "SING",
+      "file": "songs/sing.txt"
+    },
+    {
+      "order": 21,
+      "title": "Bury Me in Black",
+      "file": "songs/bury-me-i-black.txt"
+    },
+    {
+      "order": 22,
+      "title": "AMBULANCE",
+      "file": "songs/ambulance.txt"
+    },
+    {
+      "order": 23,
+      "title": "Cemetery Drive",
+      "file": "songs/cemetery-drive.txt"
+    },
+    {
+      "order": 24,
+      "title": "Helena",
+      "file": "songs/helena.txt"
+    },
+    {
+      "order": 25,
+      "title": "I'm Not Okay (I Promise)",
+      "file": "songs/im-not-okay.txt"
+    },
+    {
+      "order": 26,
+      "title": "Demolition Lovers",
+      "file": "songs/demolition-lovers.txt"
+    },
+    {
+      "order": 27,
+      "title": "Boy Division",
+      "file": "songs/boy-division.txt"
+    },
+    {
+      "order": 28,
+      "title": "Destroya",
+      "file": "songs/destroya.txt"
+    },
+    {
+      "order": 29,
+      "title": "Summertime",
+      "file": "songs/summertime.txt"
+    },
+    {
+      "order": 30,
+      "title": "Thank You for the Venom",
+      "file": "songs/thank-you-for-the-venom.txt"
+    },
+    {
+      "order": 31,
+      "title": "The Ghost of You",
+      "file": "songs/the-ghost-of-you.txt"
+    },
+    {
+      "order": 32,
+      "title": "The Kids from Yesterday",
+      "file": "songs/the-kids-from-yesterday.txt"
+    },
+    {
+      "order": 33,
+      "title": "The Light Behind Your Eyes",
+      "file": "songs/the-light-behind-your-eyes.txt"
+    },
+    {
+      "order": 34,
+      "title": "Vampires Will Never Hurt You",
+      "file": "songs/vampires-will-never-hurt-you.txt"
+    },
+    {
+      "order": 35,
+      "title": "Zero Percent",
+      "file": "songs/zero-percent.txt"
+    }
   ]
 }
