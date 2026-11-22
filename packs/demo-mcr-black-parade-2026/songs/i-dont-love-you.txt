@@ -4,8 +4,6 @@ artist: My Chemical Romance
 album: The Black Parade
 ---
 
-# Lyrics not included
-
 Well, when you go
 Don't ever think I'll make you try to stay
 And maybe when you get back

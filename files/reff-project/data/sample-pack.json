@@ -1,0 +1,13 @@
+{
+  "id": "black-parade-2026", "version": "1.0.0",
+  "artist": "My Chemical Romance", "title": "The Black Parade 2026",
+  "venue": "Stadium Nasional, Kuala Lumpur", "date": "2026-11-21",
+  "songs": [
+    { "n": 4, "title": "Sample Song",
+      "sections": [
+        { "name": "Verse 1", "reff": false, "lines": ["Sample line one", "Sample line two"] },
+        { "name": "Reff", "reff": true, "lines": ["Sample reff line one", "Sample reff line two"] },
+        { "name": null, "reff": false, "lines": ["Unlabelled stanza: no header is shown"] }
+      ] }
+  ]
+}

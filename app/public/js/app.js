@@ -11,6 +11,7 @@ import { parseHash, navigate, onRoute } from './router.js';
 import {
   loadIndex,
   ensurePack,
+  hasCachedPack,
   isDownloaded,
   songList,
   songTitle,
@@ -437,14 +438,15 @@ async function boot() {
     state.index = [];
   }
 
-  // Prefetch first pack metadata into memory if already on device (idempotent).
+  // Prefetch first pack if any version is on device (exact, else stale fallback).
+  // No cache at all → wait for the user-tapped Download (first-launch UX).
   const first = state.index[0];
-  if (first && (await isDownloaded(first.id, first.version))) {
+  if (first && (await hasCachedPack(first.id))) {
     try {
       state.pack = await ensurePack(first);
       state.packId = first.id;
     } catch {
-      /* offline without cache — home still renders from index */
+      /* offline without usable cache — home still renders from index */
     }
   }
 

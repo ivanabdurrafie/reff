@@ -4,7 +4,6 @@ artist: My Chemical Romance
 album: The Black Parade
 ---
 
-# Lyrics not included
 
 Yeah!
 

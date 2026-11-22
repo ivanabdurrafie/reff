@@ -1,0 +1,9 @@
+:root{
+  --ink:#0D0D0E; --surface:#1A1A1C; --soot:#2E2E31; --ash:#9A9AA0; --bone:#F2EFEA;
+  --red:#C8102E; --red-text:#E5384F; --amber:#D9A441;
+  --serif:"Bodoni Moda","Didot",Georgia,serif;
+  --sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r-card:18px; --r-btn:16px; --r-ctl:12px; --r-pill:999px;
+  --lyric-size:30px;
+}
+.light{ --ink:#F2EFEA; --surface:#E4E0D8; --soot:#CFCAC0; --bone:#111; --ash:#5d5d62; }

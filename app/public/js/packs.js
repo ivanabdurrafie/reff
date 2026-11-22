@@ -24,8 +24,45 @@ export async function loadIndex() {
   return Array.isArray(data) ? data : [];
 }
 
+/** Compare dotted versions numerically (1.0.10 > 1.0.9). */
+function cmpVersion(a, b) {
+  const pa = String(a).split('.').map((n) => Number(n) || 0);
+  const pb = String(b).split('.').map((n) => Number(n) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d) return d;
+  }
+  return 0;
+}
+
+/** Any version of this pack in Cache Storage (highest version wins). */
+async function matchAnyCachedPack(id) {
+  const cache = await openPackCache();
+  if (!cache) return null;
+  const base = new URL(`packs/${encodeURIComponent(id)}/`, location.href).href;
+  let best = null;
+  let bestV = '';
+  for (const req of await cache.keys()) {
+    if (!req.url.startsWith(base) || !req.url.endsWith('.json')) continue;
+    const v = req.url.slice(base.length, -'.json'.length);
+    if (!best || cmpVersion(v, bestV) > 0) {
+      best = req;
+      bestV = v;
+    }
+  }
+  if (!best) return null;
+  const hit = await cache.match(best);
+  return hit || null;
+}
+
+/** True if any version of this pack is already on the device. */
+export async function hasCachedPack(id) {
+  return !!(await matchAnyCachedPack(id));
+}
+
 /**
  * Ensure a pack is on the device (fetch → Cache Storage).
+ * Order: exact version cache → network exact → any cached version (stale OK).
  * Idempotent: if already cached, resolves immediately with the cached body.
  * @param {{id:string, version:string, size?:number}} meta
  * @param {(pct:number)=>void} [onProgress] 0–100, only during a real network fetch
@@ -42,51 +79,61 @@ export async function ensurePack(meta, onProgress) {
     }
   }
 
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`pack HTTP ${res.status}`);
-
-  const total = Number(res.headers.get('content-length')) || meta.size || 0;
-  let body;
-  if (res.body && total > 0 && onProgress) {
-    const reader = res.body.getReader();
-    const chunks = [];
-    let loaded = 0;
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-      loaded += value.length;
-      onProgress(Math.min(100, Math.round((loaded / total) * 100)));
-    }
-    const buf = new Uint8Array(loaded);
-    let off = 0;
-    for (const c of chunks) {
-      buf.set(c, off);
-      off += c.length;
-    }
-    body = buf;
-    onProgress(100);
-  } else {
-    body = await res.arrayBuffer();
-    onProgress?.(100);
-  }
-
-  // Cache the bytes (idempotent put). Reuse the original Response when possible.
-  if (cache) {
-    const packed = new Response(body, {
-      headers: { 'content-type': 'application/json' },
-    });
-    await cache.put(url, packed);
-  }
-
-  // Best-effort persistence so the pack survives storage pressure.
   try {
-    await navigator.storage?.persist?.();
-  } catch {
-    /* not supported / denied */
-  }
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`pack HTTP ${res.status}`);
 
-  return JSON.parse(new TextDecoder().decode(body instanceof ArrayBuffer ? body : body));
+    const total = Number(res.headers.get('content-length')) || meta.size || 0;
+    let body;
+    if (res.body && total > 0 && onProgress) {
+      const reader = res.body.getReader();
+      const chunks = [];
+      let loaded = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.length;
+        onProgress(Math.min(100, Math.round((loaded / total) * 100)));
+      }
+      const buf = new Uint8Array(loaded);
+      let off = 0;
+      for (const c of chunks) {
+        buf.set(c, off);
+        off += c.length;
+      }
+      body = buf;
+      onProgress(100);
+    } else {
+      body = await res.arrayBuffer();
+      onProgress?.(100);
+    }
+
+    // Cache the bytes (idempotent put). Reuse the original Response when possible.
+    if (cache) {
+      const packed = new Response(body, {
+        headers: { 'content-type': 'application/json' },
+      });
+      await cache.put(url, packed);
+    }
+
+    // Best-effort persistence so the pack survives storage pressure.
+    try {
+      await navigator.storage?.persist?.();
+    } catch {
+      /* not supported / denied */
+    }
+
+    return JSON.parse(new TextDecoder().decode(body instanceof ArrayBuffer ? body : body));
+  } catch (err) {
+    // Exact version unavailable (offline / not deployed) — any cached copy beats nothing.
+    const stale = await matchAnyCachedPack(meta.id);
+    if (stale) {
+      onProgress?.(100);
+      return stale.json();
+    }
+    throw err;
+  }
 }
 
 /** True if this exact pack id+version is already in Cache Storage. */
